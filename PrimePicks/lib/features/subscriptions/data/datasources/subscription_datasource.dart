@@ -1,0 +1,36 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../core/network/api_client.dart';
+import '../models/subscription_model.dart';
+
+final subscriptionDatasourceProvider = Provider(
+    (ref) => SubscriptionDatasource(ref.watch(apiClientProvider)));
+
+class SubscriptionDatasource {
+  final ApiClient _api;
+  SubscriptionDatasource(this._api);
+
+  Future<List<PlanModel>> getPlans() async {
+    final data = await _api.get<List<dynamic>>('/plans');
+    return data
+        .map((e) => PlanModel.fromJson(e as Map<String, dynamic>))
+        .toList();
+  }
+
+  Future<SubscriptionModel?> getMySubscription() async {
+    try {
+      final data = await _api.get<Map<String, dynamic>>('/subscriptions/me');
+      return SubscriptionModel.fromJson(data);
+    } catch (e) {
+      // 404 = pas d'abonnement actif
+      return null;
+    }
+  }
+
+  Future<PaymentInitModel> subscribe(String planId) async {
+    final data = await _api.post<Map<String, dynamic>>(
+      '/subscriptions',
+      data: {'plan_id': planId},
+    );
+    return PaymentInitModel.fromJson(data);
+  }
+}

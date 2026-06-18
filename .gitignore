@@ -1,0 +1,19 @@
+# ── Secrets & credentials ────────────────────────────────────────────────────
+# Firebase Admin SDK service account keys — NEVER commit these
+*firebase-adminsdk*.json
+*service-account*.json
+*-credentials.json
+.env
+.env.*
+!.env.example
+
+# ── OS ────────────────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ── IDEs ──────────────────────────────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo

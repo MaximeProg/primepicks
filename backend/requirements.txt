@@ -1,0 +1,41 @@
+fastapi>=0.115.0
+uvicorn[standard]>=0.30.0
+gunicorn>=22.0.0
+
+# Database
+sqlalchemy[asyncio]>=2.0.36
+asyncpg>=0.30.0
+psycopg[binary]>=3.2.0
+alembic>=1.14.0
+
+# Validation
+pydantic>=2.13.0
+pydantic-settings>=2.14.0
+python-multipart>=0.0.9
+email-validator>=2.2.0
+
+# Firebase
+firebase-admin>=6.5.0
+
+# Cloudinary
+cloudinary>=1.42.0
+
+# HTTP
+httpx>=0.28.0
+
+# Scheduler
+APScheduler>=3.10.4
+
+# Security
+python-jose[cryptography]>=3.3.0
+passlib[bcrypt]>=1.7.4
+
+# Utilities
+python-dotenv>=1.0.0
+shortuuid>=1.0.13
+
+# Monitoring
+sentry-sdk[fastapi]>=2.19.0
+
+# Rate limiting
+slowapi>=0.1.9

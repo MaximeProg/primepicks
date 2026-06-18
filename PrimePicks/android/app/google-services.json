@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "372184492195",
+    "project_id": "coupons-8ffe5",
+    "storage_bucket": "coupons-8ffe5.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:372184492195:android:82e4361ed09c9259af7716",
+        "android_client_info": {
+          "package_name": "com.primepicks.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "372184492195-72mrvorrfrs6pt0bbnjaogcpemttvccs.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.primepicks.app",
+            "certificate_hash": "447a7d22223a8ed1a1e45d2770206568995216bc"
+          }
+        },
+        {
+          "client_id": "372184492195-ttqm08nbiri049g2ojfbn12kcgs1ad21.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAutQiG4YQm-lOCttQDv8q-3CE23Kb7Z8g"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "372184492195-ttqm08nbiri049g2ojfbn12kcgs1ad21.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
