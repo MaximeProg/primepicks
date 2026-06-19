@@ -3,6 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, delete, update, func
+from sqlalchemy.dialects.postgresql import insert as pg_insert
 
 from app.core.database import get_db
 from app.core.dependencies import get_current_user
@@ -27,18 +28,16 @@ async def register_fcm_token(
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    result = await db.execute(
-        select(FcmToken).where(
-            FcmToken.user_id == user.id,
-            FcmToken.device_type == data.device_type,
-        )
+    # UPSERT atomique — évite la race condition SELECT+INSERT
+    stmt = pg_insert(FcmToken).values(
+        user_id=user.id,
+        token=data.token,
+        device_type=data.device_type,
+    ).on_conflict_do_update(
+        constraint="uq_fcm_tokens_user_device",
+        set_={"token": data.token},
     )
-    fcm = result.scalar_one_or_none()
-    if fcm:
-        fcm.token = data.token
-    else:
-        fcm = FcmToken(user_id=user.id, token=data.token, device_type=data.device_type)
-        db.add(fcm)
+    await db.execute(stmt)
     await db.commit()
     return {"message": "Token enregistré"}
 

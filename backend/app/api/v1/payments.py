@@ -93,12 +93,13 @@ def _verify_fedapay_signature(sig_header: str, body: bytes, secret: str) -> bool
     try:
         parts = dict(item.split("=", 1) for item in sig_header.split(",") if "=" in item)
         timestamp = parts.get("t", "")
-        v1_sig = parts.get("v1", "")
-        if not timestamp or not v1_sig:
+        # FedaPay utilise "s=" (pas "v1=" comme Stripe)
+        sig = parts.get("s", "") or parts.get("v1", "")
+        if not timestamp or not sig:
             return False
         signed_payload = f"{timestamp}.".encode() + body
         expected = hmac.new(secret.encode(), signed_payload, hashlib.sha256).hexdigest()
-        return hmac.compare_digest(expected, v1_sig)
+        return hmac.compare_digest(expected, sig)
     except Exception:
         return False
 
