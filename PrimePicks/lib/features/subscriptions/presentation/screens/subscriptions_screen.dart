@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../../../core/router/app_router.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/formatters.dart';
 import '../../../../shared/widgets/empty_state.dart';
@@ -315,13 +317,16 @@ class _PlanCard extends ConsumerWidget {
                   : () async {
                       final payment =
                           await notifier.subscribe(plan.id as String);
-                      if (payment != null && context.mounted) {
-                        final url = Uri.parse(payment.paymentUrl);
-                        if (await canLaunchUrl(url)) {
-                          await launchUrl(url,
-                              mode: LaunchMode.externalApplication);
-                        }
+                      if (payment == null || !context.mounted) return;
+                      final url = Uri.parse(payment.paymentUrl);
+                      if (await canLaunchUrl(url)) {
+                        await launchUrl(url, mode: LaunchMode.externalApplication);
                       }
+                      if (!context.mounted) return;
+                      // Naviguer vers l'écran de vérification après ouverture du navigateur
+                      context.push(
+                        '${AppRoutes.paymentPending}/${payment.transactionId}',
+                      );
                     },
               style: ElevatedButton.styleFrom(
                 minimumSize: const Size.fromHeight(46),

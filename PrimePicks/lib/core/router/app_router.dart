@@ -16,6 +16,7 @@ import '../../features/profile/presentation/screens/profile_screen.dart';
 import '../../features/settings/presentation/screens/settings_screen.dart';
 import '../../features/subscriptions/presentation/screens/subscriptions_screen.dart';
 import '../../features/payments/presentation/screens/payments_screen.dart';
+import '../../features/payments/presentation/screens/payment_pending_screen.dart';
 import '../../features/referral/presentation/screens/referral_screen.dart';
 import '../../features/support/presentation/screens/support_screen.dart';
 import '../../features/support/presentation/screens/ticket_chat_screen.dart';
@@ -64,6 +65,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(path: AppRoutes.referral,   builder: (_, __) => const ReferralScreen()),
       GoRoute(path: AppRoutes.affiliate,  builder: (_, __) => const _SimpleScreen('Affiliation')),
       GoRoute(path: AppRoutes.payments,   builder: (_, __) => const PaymentsScreen()),
+      GoRoute(
+        path: AppRoutes.paymentPending,
+        builder: (_, s) => PaymentPendingScreen(transactionId: s.pathParameters['transactionId']!),
+      ),
       GoRoute(path: AppRoutes.privacy,    builder: (_, __) => const _SimpleScreen('Confidentialité')),
       GoRoute(path: AppRoutes.terms,      builder: (_, __) => const _SimpleScreen('Conditions')),
 
@@ -100,6 +105,7 @@ class AppRoutes {
   static const referral       = '/referral';
   static const affiliate      = '/affiliate';
   static const payments       = '/payments';
+  static const paymentPending = '/payment-pending/:transactionId';
   static const privacy        = '/privacy';
   static const terms          = '/terms';
 }

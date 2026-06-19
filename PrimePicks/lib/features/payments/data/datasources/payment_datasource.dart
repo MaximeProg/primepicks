@@ -17,6 +17,13 @@ class PaymentDatasource {
     return list.map(_fromJson).toList();
   }
 
+  Future<TransactionEntity> verifyPayment(String transactionId) async {
+    final j = await _client.post<Map<String, dynamic>>(
+      '/payments/verify/$transactionId',
+    );
+    return _fromJson(j);
+  }
+
   TransactionEntity _fromJson(dynamic j) => TransactionEntity(
     id:         j['id'] as String,
     planId:     j['plan_id'] as String?,
