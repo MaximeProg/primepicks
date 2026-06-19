@@ -1,10 +1,13 @@
 import hmac
 import hashlib
 import httpx
+import logging
 from uuid import UUID
 from datetime import datetime
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
+
+logger = logging.getLogger(__name__)
 
 from app.core.config import settings
 from app.models.transaction import Transaction, TransactionStatus
@@ -73,14 +76,18 @@ async def initiate_fedapay_payment(
         token_response.raise_for_status()
         token_data = token_response.json()
 
-    token = token_data.get("token", "")
-    # Use the sandbox checkout domain when running against the sandbox API
+    logger.info("FedaPay token raw response: %s", token_data)
+    # FedaPay wraps token response under "v1/token" key (same pattern as "v1/transaction")
+    token_obj = token_data.get("v1/token", token_data)
+    token = token_obj.get("token", "")
     checkout_host = (
         "sandbox-checkout.fedapay.com"
         if "sandbox" in settings.FEDAPAY_BASE_URL
         else "checkout.fedapay.com"
     )
-    payment_url = f"https://{checkout_host}/{token}"
+    # Prefer the payment_url returned by FedaPay directly; fall back to manual construction
+    payment_url = token_obj.get("payment_url") or f"https://{checkout_host}/{token}"
+    logger.info("FedaPay payment_url generated: %s", payment_url)
 
     transaction.fedapay_id = fedapay_id
     transaction.fedapay_token = token

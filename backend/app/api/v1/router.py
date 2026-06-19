@@ -13,6 +13,7 @@ from app.api.v1.admin import app_settings as admin_app_settings
 from app.api.v1.admin import support_tickets as admin_support
 from app.api.v1.admin import admin_logs
 from app.api.v1.admin import affiliate_payouts as admin_affiliate_payouts
+from app.api.v1.admin import referrals as admin_referrals
 
 api_router = APIRouter(prefix="/api/v1")
 
@@ -44,3 +45,4 @@ api_router.include_router(admin_app_settings.router)
 api_router.include_router(admin_support.router)
 api_router.include_router(admin_logs.router)
 api_router.include_router(admin_affiliate_payouts.router)
+api_router.include_router(admin_referrals.router)
