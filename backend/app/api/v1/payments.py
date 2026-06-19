@@ -164,25 +164,34 @@ async def fedapay_webhook(request: Request, db: AsyncSession = Depends(get_db)):
     event_name = event.get("name", "")
     logger.info("Webhook FedaPay reçu : %s", event_name)
 
+    # On ne traite que les paiements approuvés
     if event_name != "transaction.approved":
         return {"ok": True}
 
-    # Extraire notre transaction_id depuis les métadonnées FedaPay
     txn_data = event.get("data", {})
     fedapay_txn = txn_data.get("v1/transaction", txn_data)
-    metadata = fedapay_txn.get("metadata") or {}
-    transaction_id = metadata.get("transaction_id")
+    fedapay_id = str(fedapay_txn.get("id", ""))
 
-    if not transaction_id:
-        logger.warning("Webhook FedaPay : metadata.transaction_id absent")
-        return {"ok": True}
+    # Recherche par fedapay_id (le plus fiable — pas de dépendance aux métadonnées)
+    result = None
+    if fedapay_id:
+        result = await db.execute(
+            select(Transaction).where(Transaction.fedapay_id == fedapay_id)
+        )
+    transaction = result.scalar_one_or_none() if result else None
 
-    result = await db.execute(
-        select(Transaction).where(Transaction.id == transaction_id)
-    )
-    transaction = result.scalar_one_or_none()
+    # Fallback : custom_metadata.transaction_id
     if not transaction:
-        logger.warning("Webhook FedaPay : transaction %s introuvable", transaction_id)
+        custom_meta = fedapay_txn.get("custom_metadata") or {}
+        transaction_id = custom_meta.get("transaction_id")
+        if transaction_id:
+            res2 = await db.execute(
+                select(Transaction).where(Transaction.id == transaction_id)
+            )
+            transaction = res2.scalar_one_or_none()
+
+    if not transaction:
+        logger.warning("Webhook FedaPay : aucune transaction locale pour fedapay_id=%s", fedapay_id)
         return {"ok": True}
 
     await _activate_transaction(db, transaction)

@@ -47,7 +47,7 @@ async def initiate_fedapay_payment(
             "lastname": " ".join((user.full_name or "Client").split(" ")[1:]) or "Client",
         },
         "callback_url": f"{settings.FRONTEND_URL}/payment/callback",
-        "metadata": {"transaction_id": str(transaction.id)},
+        "custom_metadata": {"transaction_id": str(transaction.id)},
     }
 
     async with httpx.AsyncClient() as client:
