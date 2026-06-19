@@ -67,7 +67,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(path: AppRoutes.payments,   builder: (_, __) => const PaymentsScreen()),
       GoRoute(
         path: AppRoutes.paymentPending,
-        builder: (_, s) => PaymentPendingScreen(transactionId: s.pathParameters['transactionId']!),
+        builder: (_, s) {
+          final extra = s.extra as Map<String, String>;
+          return PaymentPendingScreen(
+            transactionId: extra['transactionId']!,
+            paymentUrl:    extra['paymentUrl']!,
+          );
+        },
       ),
       GoRoute(path: AppRoutes.privacy,    builder: (_, __) => const _SimpleScreen('Confidentialité')),
       GoRoute(path: AppRoutes.terms,      builder: (_, __) => const _SimpleScreen('Conditions')),
@@ -105,7 +111,7 @@ class AppRoutes {
   static const referral       = '/referral';
   static const affiliate      = '/affiliate';
   static const payments       = '/payments';
-  static const paymentPending = '/payment-pending/:transactionId';
+  static const paymentPending = '/payment-pending';
   static const privacy        = '/privacy';
   static const terms          = '/terms';
 }

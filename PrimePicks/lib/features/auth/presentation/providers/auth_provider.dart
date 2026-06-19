@@ -21,15 +21,18 @@ final authNotifierProvider =
 class AuthNotifier extends AsyncNotifier<void> {
   @override
   Future<void> build() async {
-    // Restore user profile and init FCM whenever Firebase auth state changes
-    // (covers app restart with an existing session)
-    ref.listen(authStateProvider, (_, next) async {
-      next.whenData((firebaseUser) async {
+    // ref.listen ne déclenche pas de callback pour la valeur ACTUELLE —
+    // il faut donc vérifier immédiatement + écouter les changements futurs.
+    Future<void> syncProfile(AsyncValue<User?> state) async {
+      state.whenData((firebaseUser) async {
         if (firebaseUser != null) {
+          // Toujours re-fetch si le profil est absent
           if (ref.read(userProfileProvider) == null) {
             try {
               final user = await ref.read(authRepositoryProvider).getCurrentUser();
-              if (user != null) ref.read(userProfileProvider.notifier).state = user;
+              if (user != null) {
+                ref.read(userProfileProvider.notifier).state = user;
+              }
             } catch (_) {}
           }
           if (!kIsWeb) await ref.read(fcmServiceProvider).init();
@@ -37,7 +40,13 @@ class AuthNotifier extends AsyncNotifier<void> {
           ref.read(userProfileProvider.notifier).state = null;
         }
       });
-    });
+    }
+
+    // 1. Vérifier l'état actuel immédiatement (couvre le redémarrage de l'app)
+    await syncProfile(ref.read(authStateProvider));
+
+    // 2. Écouter les changements futurs (connexion, déconnexion, refresh token)
+    ref.listen(authStateProvider, (_, next) => syncProfile(next));
   }
 
   Future<void> signInWithEmail(String email, String password) async {
