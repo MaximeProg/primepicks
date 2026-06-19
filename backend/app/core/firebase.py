@@ -11,11 +11,22 @@ def get_firebase_app():
     if _firebase_app is not None:
         return _firebase_app
 
-    # Priorité : fichier serviceAccountKey.json
-    if settings.FIREBASE_SERVICE_ACCOUNT_PATH:
+    cred = None
+
+    # 1. JSON complet en variable d'environnement (idéal pour Render/cloud)
+    if settings.FIREBASE_SERVICE_ACCOUNT_JSON:
+        try:
+            account_info = json.loads(settings.FIREBASE_SERVICE_ACCOUNT_JSON)
+            cred = credentials.Certificate(account_info)
+        except Exception as e:
+            raise RuntimeError(f"FIREBASE_SERVICE_ACCOUNT_JSON invalide : {e}")
+
+    # 2. Chemin vers le fichier JSON (dev local)
+    elif settings.FIREBASE_SERVICE_ACCOUNT_PATH:
         cred = credentials.Certificate(settings.FIREBASE_SERVICE_ACCOUNT_PATH)
-    elif settings.FIREBASE_PROJECT_ID and settings.FIREBASE_PRIVATE_KEY:
-        # Variables d'environnement individuelles
+
+    # 3. Variables individuelles
+    elif settings.FIREBASE_PROJECT_ID and settings.FIREBASE_PRIVATE_KEY and settings.FIREBASE_CLIENT_EMAIL:
         cred = credentials.Certificate({
             "type": "service_account",
             "project_id": settings.FIREBASE_PROJECT_ID,
@@ -23,8 +34,8 @@ def get_firebase_app():
             "client_email": settings.FIREBASE_CLIENT_EMAIL,
             "token_uri": "https://oauth2.googleapis.com/token",
         })
+
     else:
-        # Mode dev sans Firebase configuré
         return None
 
     _firebase_app = firebase_admin.initialize_app(cred)

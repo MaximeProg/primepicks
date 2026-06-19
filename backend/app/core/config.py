@@ -22,11 +22,12 @@ class Settings(BaseSettings):
     DATABASE_URL: str
     DATABASE_URL_SYNC: str
 
-    # Firebase
-    FIREBASE_PROJECT_ID: Optional[str] = None
+    # Firebase — 3 façons de configurer (priorité : JSON > PATH > variables individuelles)
+    FIREBASE_SERVICE_ACCOUNT_JSON: Optional[str] = None   # JSON complet en string (Render)
+    FIREBASE_SERVICE_ACCOUNT_PATH: Optional[str] = None   # Chemin vers le fichier JSON (local)
+    FIREBASE_PROJECT_ID: Optional[str] = None             # Variables individuelles
     FIREBASE_PRIVATE_KEY: Optional[str] = None
     FIREBASE_CLIENT_EMAIL: Optional[str] = None
-    FIREBASE_SERVICE_ACCOUNT_PATH: Optional[str] = None
 
     # FedaPay
     FEDAPAY_API_KEY: str = ""
