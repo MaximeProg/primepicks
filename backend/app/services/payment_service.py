@@ -36,7 +36,7 @@ async def initiate_fedapay_payment(
     db.add(transaction)
     await db.flush()
 
-    # Appel FedaPay API
+    # Appel FedaPay — la réponse de création contient déjà payment_url et payment_token
     payload = {
         "description": f"Abonnement {plan.name}",
         "amount": int(plan.price),
@@ -65,32 +65,14 @@ async def initiate_fedapay_payment(
 
     fedapay_transaction = data.get("v1/transaction", data)
     fedapay_id = str(fedapay_transaction.get("id", ""))
+    # FedaPay fournit directement payment_url (https://process.fedapay.com/...) dans la réponse
+    payment_url = fedapay_transaction.get("payment_url", "")
+    payment_token = fedapay_transaction.get("payment_token", "")
 
-    # Générer le token de paiement FedaPay
-    async with httpx.AsyncClient() as client:
-        token_response = await client.post(
-            f"{settings.FEDAPAY_BASE_URL}/transactions/{fedapay_id}/token",
-            headers={"Authorization": f"Bearer {settings.FEDAPAY_API_KEY}"},
-            timeout=30,
-        )
-        token_response.raise_for_status()
-        token_data = token_response.json()
-
-    logger.info("FedaPay token raw response: %s", token_data)
-    # FedaPay wraps token response under "v1/token" key (same pattern as "v1/transaction")
-    token_obj = token_data.get("v1/token", token_data)
-    token = token_obj.get("token", "")
-    checkout_host = (
-        "sandbox-checkout.fedapay.com"
-        if "sandbox" in settings.FEDAPAY_BASE_URL
-        else "checkout.fedapay.com"
-    )
-    # Prefer the payment_url returned by FedaPay directly; fall back to manual construction
-    payment_url = token_obj.get("payment_url") or f"https://{checkout_host}/{token}"
-    logger.info("FedaPay payment_url generated: %s", payment_url)
+    logger.info("FedaPay transaction %s → payment_url: %s", fedapay_id, payment_url)
 
     transaction.fedapay_id = fedapay_id
-    transaction.fedapay_token = token
+    transaction.fedapay_token = payment_token
     transaction.payment_url = payment_url
 
     await db.flush()
