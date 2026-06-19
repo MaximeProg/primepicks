@@ -37,7 +37,11 @@ const navAdmin = [
 ];
 
 
-export function Sidebar() {
+interface SidebarProps {
+  onClose?: () => void;
+}
+
+export function Sidebar({ onClose }: SidebarProps) {
   const pathname = usePathname();
 
   const isActive = (href: string, exact?: boolean) =>
@@ -49,6 +53,7 @@ export function Sidebar() {
       <li key={href}>
         <Link
           href={href}
+          onClick={onClose}
           className={cn(
             "flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition-colors",
             active

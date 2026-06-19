@@ -157,7 +157,7 @@ export default function BannersPage() {
       />
 
       <div className="space-y-4">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-wrap items-center justify-between gap-2">
           <p className="text-sm text-gray-500 dark:text-slate-400">{banners.length} bannière(s)</p>
           <Button onClick={openCreate}><Plus className="h-4 w-4" />Nouvelle bannière</Button>
         </div>

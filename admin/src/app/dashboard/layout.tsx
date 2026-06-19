@@ -41,7 +41,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             onClick={() => setSidebarOpen(false)}
           />
           <div className="fixed inset-y-0 left-0 z-50 lg:hidden">
-            <Sidebar />
+            <Sidebar onClose={() => setSidebarOpen(false)} />
           </div>
         </>
       )}
@@ -49,7 +49,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       {/* Main */}
       <div className="flex flex-1 flex-col overflow-hidden">
         <Header onMenuClick={() => setSidebarOpen((v) => !v)} />
-        <main className="flex-1 overflow-y-auto bg-gray-50 dark:bg-slate-950 p-6">
+        <main className="flex-1 overflow-y-auto bg-gray-50 dark:bg-slate-950 p-3 sm:p-6">
           {children}
         </main>
       </div>

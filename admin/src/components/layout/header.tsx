@@ -110,7 +110,7 @@ export function Header({ onMenuClick }: HeaderProps) {
           </button>
 
           {bellOpen && (
-            <div className="absolute right-0 top-full mt-1.5 w-80 rounded-xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-xl z-50 overflow-hidden flex flex-col max-h-[480px]">
+            <div className="absolute right-0 top-full mt-1.5 w-[min(320px,calc(100vw-1rem))] rounded-xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-xl z-50 overflow-hidden flex flex-col max-h-[480px]">
               {/* Header panel */}
               <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 dark:border-slate-800">
                 <span className="text-sm font-semibold text-gray-800 dark:text-slate-100">

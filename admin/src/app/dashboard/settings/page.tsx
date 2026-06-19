@@ -95,7 +95,7 @@ export default function SettingsPage() {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="space-y-1.5 col-span-2">
               <Label>Nom de la plateforme</Label>
               <Input value={form.platform_name}
