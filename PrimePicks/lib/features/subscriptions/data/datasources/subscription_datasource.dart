@@ -17,13 +17,10 @@ class SubscriptionDatasource {
   }
 
   Future<SubscriptionModel?> getMySubscription() async {
-    try {
-      final data = await _api.get<Map<String, dynamic>>('/subscriptions/me');
-      return SubscriptionModel.fromJson(data);
-    } catch (e) {
-      // 404 = pas d'abonnement actif
-      return null;
-    }
+    final data = await _api.get<dynamic>('/subscriptions/me');
+    // Le backend retourne null (JSON null) quand pas d'abonnement
+    if (data == null) return null;
+    return SubscriptionModel.fromJson(data as Map<String, dynamic>);
   }
 
   Future<PaymentInitModel> subscribe(String planId) async {

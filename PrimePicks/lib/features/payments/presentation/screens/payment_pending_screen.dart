@@ -38,17 +38,23 @@ class _PaymentPendingScreenState extends ConsumerState<PaymentPendingScreen> {
     _controller = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
       ..setNavigationDelegate(NavigationDelegate(
-        onPageStarted: (_) {
+        onPageStarted: (url) {
+          // Couvre les redirects HTTP 3xx que onNavigationRequest ne voit pas
+          if (url.contains(_callbackBase)) {
+            _controller.loadRequest(Uri.parse('about:blank'));
+            _onPaymentComplete();
+            return;
+          }
           if (mounted) setState(() => _loading = true);
         },
         onPageFinished: (_) {
           if (mounted) setState(() => _loading = false);
         },
         onWebResourceError: (error) {
-          if (mounted) setState(() { _loading = false; _error = 'Erreur de chargement'; });
+          if (mounted) setState(() { _loading = false; });
         },
         onNavigationRequest: (request) {
-          // FedaPay redirige vers callback_url après paiement (succès OU échec)
+          // Couvre les redirects JavaScript (window.location)
           if (request.url.contains(_callbackBase)) {
             _onPaymentComplete();
             return NavigationDecision.prevent;
@@ -130,7 +136,11 @@ class _PaymentPendingScreenState extends ConsumerState<PaymentPendingScreen> {
         title: const Text('Paiement sécurisé'),
         leading: IconButton(
           icon: const Icon(Icons.close),
-          onPressed: () => context.go(AppRoutes.subscriptions),
+          onPressed: () {
+            // Forcer le rechargement de l'abonnement au retour (le webhook a pu l'activer)
+            ref.invalidate(mySubscriptionProvider);
+            context.go(AppRoutes.subscriptions);
+          },
         ),
         actions: [
           if (_loading)
