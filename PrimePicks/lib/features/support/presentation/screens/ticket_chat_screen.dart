@@ -1,7 +1,9 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../core/network/api_client.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -342,23 +344,117 @@ class _MediaPreview extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isImage = mediaType == 'IMAGE';
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(
-          isImage ? Icons.image_rounded : Icons.attach_file_rounded,
-          size: 18,
-          color: isUser ? Colors.white70 : AppColors.textSecondary,
-        ),
-        const SizedBox(width: 6),
-        Text(
-          isImage ? 'Image' : 'Fichier',
-          style: TextStyle(
-            fontSize: 13,
-            color: isUser ? Colors.white : AppColors.textSecondary,
+
+    if (isImage) {
+      return GestureDetector(
+        onTap: () => _openFullscreen(context),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(8),
+          child: CachedNetworkImage(
+            imageUrl: mediaUrl,
+            width: 200,
+            fit: BoxFit.cover,
+            placeholder: (_, __) => Container(
+              width: 200,
+              height: 140,
+              color: Colors.black12,
+              child: const Center(
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ),
+            ),
+            errorWidget: (_, __, ___) => Container(
+              width: 200,
+              height: 80,
+              color: Colors.black12,
+              child: const Center(
+                child: Icon(Icons.broken_image_rounded, color: Colors.white54, size: 32),
+              ),
+            ),
           ),
         ),
-      ],
+      );
+    }
+
+    // PDF / VIDEO / FILE
+    final (icon, label) = switch (mediaType) {
+      'VIDEO' => (Icons.videocam_rounded, 'Vidéo'),
+      'PDF'   => (Icons.picture_as_pdf_rounded, 'PDF'),
+      _       => (Icons.attach_file_rounded, 'Fichier'),
+    };
+
+    return GestureDetector(
+      onTap: () async {
+        final uri = Uri.parse(mediaUrl);
+        if (await canLaunchUrl(uri)) await launchUrl(uri, mode: LaunchMode.externalApplication);
+      },
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 20, color: isUser ? Colors.white70 : AppColors.primary),
+          const SizedBox(width: 8),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 13,
+              color: isUser ? Colors.white : AppColors.primary,
+              decoration: TextDecoration.underline,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _openFullscreen(BuildContext context) {
+    Navigator.of(context).push(
+      PageRouteBuilder(
+        opaque: false,
+        barrierColor: Colors.black87,
+        pageBuilder: (_, __, ___) => _FullscreenImage(url: mediaUrl),
+      ),
+    );
+  }
+}
+
+class _FullscreenImage extends StatelessWidget {
+  final String url;
+  const _FullscreenImage({required this.url});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () => Navigator.of(context).pop(),
+      child: Scaffold(
+        backgroundColor: Colors.black87,
+        appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          leading: IconButton(
+            icon: const Icon(Icons.close, color: Colors.white),
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.open_in_browser_rounded, color: Colors.white),
+              tooltip: 'Ouvrir dans le navigateur',
+              onPressed: () async {
+                final uri = Uri.parse(url);
+                if (await canLaunchUrl(uri)) await launchUrl(uri, mode: LaunchMode.externalApplication);
+              },
+            ),
+          ],
+        ),
+        body: Center(
+          child: InteractiveViewer(
+            child: CachedNetworkImage(
+              imageUrl: url,
+              fit: BoxFit.contain,
+              placeholder: (_, __) => const CircularProgressIndicator(color: Colors.white),
+              errorWidget: (_, __, ___) => const Icon(Icons.broken_image_rounded, color: Colors.white54, size: 64),
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

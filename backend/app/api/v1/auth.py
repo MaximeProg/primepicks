@@ -62,6 +62,7 @@ async def sync_user(
         )
         referrer = referrer_result.scalar_one_or_none()
         if referrer and referrer.id != user.id:
+            user.referred_by = referrer.id
             db.add(Referral(referrer_id=referrer.id, referred_id=user.id))
 
     await db.commit()

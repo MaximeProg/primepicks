@@ -7,6 +7,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/formatters.dart';
 import '../../../../shared/widgets/empty_state.dart';
 import '../../../../shared/widgets/shimmer_box.dart';
+import '../../domain/entities/referral_entity.dart';
 import '../providers/referral_provider.dart';
 
 class ReferralScreen extends ConsumerWidget {
@@ -365,7 +366,22 @@ class _ReferralList extends ConsumerWidget {
               child: ShimmerBox.wide(height: 56, radius: 10),
             )),
       ),
-      error: (_, __) => const SizedBox.shrink(),
+      error: (e, _) => Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        child: Column(
+          children: [
+            Text(
+              'Impossible de charger les filleuls',
+              style: TextStyle(fontSize: 13, color: AppColors.error),
+            ),
+            const SizedBox(height: 8),
+            TextButton(
+              onPressed: () => ref.invalidate(referralStatsProvider),
+              child: const Text('Réessayer'),
+            ),
+          ],
+        ),
+      ),
       data: (entries) {
         if (entries.isEmpty) {
           return const EmptyState(
@@ -383,12 +399,15 @@ class _ReferralList extends ConsumerWidget {
 }
 
 class _EntryTile extends StatelessWidget {
-  final dynamic entry;
+  final ReferralEntryEntity entry;
   final bool isDark;
   const _EntryTile({required this.entry, required this.isDark});
 
   @override
   Widget build(BuildContext context) {
+    final displayName = (entry.referredName?.isNotEmpty == true)
+        ? entry.referredName!
+        : (entry.referredEmail ?? 'Filleul');
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
@@ -422,7 +441,7 @@ class _EntryTile extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  entry.rewardGiven ? 'Récompense obtenue' : 'En attente d\'abonnement',
+                  displayName,
                   style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
@@ -430,7 +449,7 @@ class _EntryTile extends StatelessWidget {
                   ),
                 ),
                 Text(
-                  Fmt.date(entry.createdAt as DateTime),
+                  '${entry.rewardGiven ? "Récompensé" : "En attente"} · ${Fmt.date(entry.createdAt)}',
                   style: TextStyle(
                     fontSize: 12,
                     color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,

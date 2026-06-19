@@ -22,10 +22,12 @@ class ReferralDatasource {
   Future<List<ReferralEntryEntity>> getStats() async {
     final list = await _client.get<List<dynamic>>('/referrals/me/stats');
     return list.map((j) => ReferralEntryEntity(
-      id:          j['id'] as String,
-      rewardGiven: j['reward_given'] as bool,
-      rewardedAt:  j['rewarded_at'] != null ? DateTime.parse(j['rewarded_at']) : null,
-      createdAt:   DateTime.parse(j['created_at']),
+      id:            j['id'] as String,
+      referredName:  j['referred_name'] as String?,
+      referredEmail: j['referred_email'] as String?,
+      rewardGiven:   j['reward_given'] as bool,
+      rewardedAt:    j['rewarded_at'] != null ? DateTime.parse(j['rewarded_at'] as String) : null,
+      createdAt:     DateTime.parse(j['created_at'] as String),
     )).toList();
   }
 }

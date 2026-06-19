@@ -14,12 +14,16 @@ class ReferralInfoEntity {
 
 class ReferralEntryEntity {
   final String id;
+  final String? referredName;
+  final String? referredEmail;
   final bool rewardGiven;
   final DateTime? rewardedAt;
   final DateTime createdAt;
 
   const ReferralEntryEntity({
     required this.id,
+    this.referredName,
+    this.referredEmail,
     required this.rewardGiven,
     this.rewardedAt,
     required this.createdAt,

@@ -74,7 +74,13 @@ async def initiate_fedapay_payment(
         token_data = token_response.json()
 
     token = token_data.get("token", "")
-    payment_url = f"https://checkout.fedapay.com/{token}"
+    # Use the sandbox checkout domain when running against the sandbox API
+    checkout_host = (
+        "sandbox-checkout.fedapay.com"
+        if "sandbox" in settings.FEDAPAY_BASE_URL
+        else "checkout.fedapay.com"
+    )
+    payment_url = f"https://{checkout_host}/{token}"
 
     transaction.fedapay_id = fedapay_id
     transaction.fedapay_token = token

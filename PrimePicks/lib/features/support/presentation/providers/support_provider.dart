@@ -126,10 +126,30 @@ class TicketChatNotifier extends FamilyAsyncNotifier<TicketEntity, String> {
   }
 
   Future<void> sendMedia(String mediaUrl, String mediaType) async {
-    await ref.read(supportDatasourceProvider).sendMessage(
-      arg, mediaUrl: mediaUrl, mediaType: mediaType,
-    );
-    await _silentRefresh();
+    final current = state.valueOrNull;
+    if (current == null) return;
+
+    final tmp = _optimisticMsg(mediaUrl: mediaUrl, mediaType: mediaType);
+    state = AsyncData(_withMsg(current, tmp));
+
+    try {
+      final sent = await ref.read(supportDatasourceProvider).sendMessage(
+        arg, mediaUrl: mediaUrl, mediaType: mediaType,
+      );
+      final updated = state.valueOrNull;
+      if (updated == null) return;
+      final alreadyAdded = updated.messages.any((m) => m.id == sent.id);
+      final msgs = updated.messages.where((m) => m.id != tmp.id).toList();
+      if (!alreadyAdded) msgs.add(sent);
+      state = AsyncData(_withMsgs(updated, msgs));
+    } catch (e) {
+      final updated = state.valueOrNull;
+      if (updated == null) return;
+      state = AsyncData(_withMsgs(
+        updated, updated.messages.where((m) => m.id != tmp.id).toList(),
+      ));
+      rethrow;
+    }
   }
 
   Future<void> refresh() async {
@@ -140,11 +160,13 @@ class TicketChatNotifier extends FamilyAsyncNotifier<TicketEntity, String> {
 
   // ── Helpers ─────────────────────────────────────────────────────────────────
 
-  TicketMessageEntity _optimisticMsg({String? content}) => TicketMessageEntity(
+  TicketMessageEntity _optimisticMsg({String? content, String? mediaUrl, String? mediaType}) => TicketMessageEntity(
     id:         'tmp-${DateTime.now().millisecondsSinceEpoch}',
     ticketId:   arg,
     senderType: 'USER',
     content:    content,
+    mediaUrl:   mediaUrl,
+    mediaType:  mediaType,
     isRead:     false,
     createdAt:  DateTime.now(),
   );

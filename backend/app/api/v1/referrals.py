@@ -24,11 +24,11 @@ class ReferralInfo(BaseModel):
 class ReferralEntry(BaseModel):
     id: UUID
     referred_id: UUID
+    referred_name: str | None
+    referred_email: str | None
     reward_given: bool
     rewarded_at: datetime | None
     created_at: datetime
-
-    model_config = {"from_attributes": True}
 
 
 @router.get("/me", response_model=ReferralInfo)
@@ -62,9 +62,31 @@ async def get_my_referral_stats(
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
+    # Join with users table to get referred user's name and email
     result = await db.execute(
-        select(Referral)
+        select(
+            Referral.id,
+            Referral.referred_id,
+            Referral.reward_given,
+            Referral.rewarded_at,
+            Referral.created_at,
+            User.full_name.label("referred_name"),
+            User.email.label("referred_email"),
+        )
+        .join(User, User.id == Referral.referred_id)
         .where(Referral.referrer_id == user.id)
         .order_by(Referral.created_at.desc())
     )
-    return result.scalars().all()
+    rows = result.mappings().all()
+    return [
+        ReferralEntry(
+            id=row["id"],
+            referred_id=row["referred_id"],
+            referred_name=row["referred_name"],
+            referred_email=row["referred_email"],
+            reward_given=row["reward_given"],
+            rewarded_at=row["rewarded_at"],
+            created_at=row["created_at"],
+        )
+        for row in rows
+    ]

@@ -27,47 +27,46 @@ class NotificationsNotifier extends AsyncNotifier<List<NotificationEntity>> {
 
   // Mise à jour locale optimiste puis confirmation API
   Future<void> markRead(String id) async {
-    // Mise à jour optimiste
-    final current = state.valueOrNull;
-    if (current != null) {
-      state = AsyncData(current
-          .map((n) => n.id == id ? n.copyWith(isRead: true) : n)
-          .toList());
-    }
+    final current = state.valueOrNull ?? [];
+    state = AsyncData(current
+        .map((n) => n.id == id ? n.copyWith(isRead: true) : n)
+        .toList());
     try {
-      await ref.read(apiClientProvider).patch<void>(
+      await ref.read(apiClientProvider).patch<dynamic>(
         '/notifications/inbox/$id/read',
       );
     } catch (_) {
-      // En cas d'erreur, on recharge
-      state = await AsyncValue.guard(_fetch);
+      // Revert only if state is still valid; never blank the list on error
+      final snapshot = state.valueOrNull;
+      if (snapshot != null) {
+        final refetched = await AsyncValue.guard(_fetch);
+        // Only replace if the refetch returned data (not an error)
+        if (refetched is AsyncData) state = refetched;
+      }
     }
   }
 
   Future<void> markAllRead() async {
-    final current = state.valueOrNull;
-    if (current != null) {
-      state = AsyncData(current.map((n) => n.copyWith(isRead: true)).toList());
-    }
+    final current = state.valueOrNull ?? [];
+    state = AsyncData(current.map((n) => n.copyWith(isRead: true)).toList());
     try {
-      await ref.read(apiClientProvider).post<void>(
+      await ref.read(apiClientProvider).post<dynamic>(
         '/notifications/inbox/read-all',
       );
     } catch (_) {
-      state = await AsyncValue.guard(_fetch);
+      final refetched = await AsyncValue.guard(_fetch);
+      if (refetched is AsyncData) state = refetched;
     }
   }
 
   Future<void> delete(String id) async {
-    // Suppression optimiste immédiate
-    final current = state.valueOrNull;
-    if (current != null) {
-      state = AsyncData(current.where((n) => n.id != id).toList());
-    }
+    final current = state.valueOrNull ?? [];
+    state = AsyncData(current.where((n) => n.id != id).toList());
     try {
       await ref.read(apiClientProvider).delete('/notifications/inbox/$id');
     } catch (_) {
-      state = await AsyncValue.guard(_fetch);
+      final refetched = await AsyncValue.guard(_fetch);
+      if (refetched is AsyncData) state = refetched;
     }
   }
 
@@ -76,7 +75,8 @@ class NotificationsNotifier extends AsyncNotifier<List<NotificationEntity>> {
     try {
       await ref.read(apiClientProvider).delete('/notifications/inbox');
     } catch (_) {
-      state = await AsyncValue.guard(_fetch);
+      final refetched = await AsyncValue.guard(_fetch);
+      if (refetched is AsyncData) state = refetched;
     }
   }
 
