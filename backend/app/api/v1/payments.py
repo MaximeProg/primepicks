@@ -85,6 +85,24 @@ async def verify_and_activate(
     return transaction
 
 
+def _verify_fedapay_signature(sig_header: str, body: bytes, secret: str) -> bool:
+    """
+    FedaPay envoie : X-FEDAPAY-SIGNATURE: t=TIMESTAMP,v1=HMAC_HEX
+    Le HMAC est calculé sur "timestamp.body" (pas seulement body).
+    """
+    try:
+        parts = dict(item.split("=", 1) for item in sig_header.split(",") if "=" in item)
+        timestamp = parts.get("t", "")
+        v1_sig = parts.get("v1", "")
+        if not timestamp or not v1_sig:
+            return False
+        signed_payload = f"{timestamp}.".encode() + body
+        expected = hmac.new(secret.encode(), signed_payload, hashlib.sha256).hexdigest()
+        return hmac.compare_digest(expected, v1_sig)
+    except Exception:
+        return False
+
+
 async def _activate_transaction(db: AsyncSession, transaction: Transaction) -> None:
     """Logique commune d'activation après confirmation FedaPay (verify + webhook)."""
     if transaction.status == TransactionStatus.PAID:
@@ -125,14 +143,16 @@ async def fedapay_webhook(request: Request, db: AsyncSession = Depends(get_db)):
     """
     body = await request.body()
 
-    # Vérification de signature si le secret est configuré
+    # Vérification de signature FedaPay (format : "t=TIMESTAMP,v1=HMAC_HEX")
     if settings.FEDAPAY_WEBHOOK_SECRET:
         sig_header = request.headers.get("X-FEDAPAY-SIGNATURE", "")
-        expected = "sha256=" + hmac.new(
-            settings.FEDAPAY_WEBHOOK_SECRET.encode(), body, hashlib.sha256
-        ).hexdigest()
-        if not hmac.compare_digest(sig_header, expected):
-            logger.warning("Webhook FedaPay : signature invalide")
+        logger.info("Webhook FedaPay signature header: %s", sig_header)
+        if not _verify_fedapay_signature(sig_header, body, settings.FEDAPAY_WEBHOOK_SECRET):
+            logger.warning(
+                "Webhook FedaPay : signature invalide (header=%s, secret_last4=...%s)",
+                sig_header,
+                settings.FEDAPAY_WEBHOOK_SECRET[-4:],
+            )
             raise HTTPException(status_code=401, detail="Signature invalide")
 
     try:
