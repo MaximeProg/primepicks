@@ -56,16 +56,20 @@ export function Header({ onMenuClick }: HeaderProps) {
 
   const [profileOpen, setProfileOpen] = useState(false);
   const [bellOpen, setBellOpen]       = useState(false);
-  const profileRef = useRef<HTMLDivElement>(null);
-  const bellRef    = useRef<HTMLDivElement>(null);
+  const profileRef   = useRef<HTMLDivElement>(null);
+  const bellRef      = useRef<HTMLDivElement>(null);
+  const bellPanelRef = useRef<HTMLDivElement>(null);
 
   const notif = useNotifications(!!user);
 
   // Fermer les dropdowns au clic extérieur
   useEffect(() => {
     const handle = (e: MouseEvent) => {
-      if (profileRef.current && !profileRef.current.contains(e.target as Node)) setProfileOpen(false);
-      if (bellRef.current    && !bellRef.current.contains(e.target as Node))    setBellOpen(false);
+      const target = e.target as Node;
+      if (profileRef.current && !profileRef.current.contains(target)) setProfileOpen(false);
+      const inBell  = bellRef.current?.contains(target);
+      const inPanel = bellPanelRef.current?.contains(target);
+      if (!inBell && !inPanel) setBellOpen(false);
     };
     document.addEventListener("mousedown", handle);
     return () => document.removeEventListener("mousedown", handle);
@@ -110,7 +114,10 @@ export function Header({ onMenuClick }: HeaderProps) {
           </button>
 
           {bellOpen && (
-            <div className="absolute right-0 top-full mt-1.5 w-[min(320px,calc(100vw-1rem))] rounded-xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-xl z-50 overflow-hidden flex flex-col max-h-[480px]">
+            <div
+              ref={bellPanelRef}
+              className="fixed right-2 top-[68px] sm:absolute sm:right-0 sm:top-full sm:mt-1.5 w-[min(320px,calc(100vw-1rem))] rounded-xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-xl z-50 overflow-hidden flex flex-col max-h-[480px]"
+            >
               {/* Header panel */}
               <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 dark:border-slate-800">
                 <span className="text-sm font-semibold text-gray-800 dark:text-slate-100">
