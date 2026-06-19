@@ -45,6 +45,19 @@ async def upload_coupon_image(file: UploadFile) -> str:
     return await loop.run_in_executor(None, lambda: _upload_sync(content, **kwargs))
 
 
+async def upload_support_media(file: UploadFile) -> str:
+    content = await _validate_file(file)
+    loop = asyncio.get_event_loop()
+    kwargs = {
+        "folder": "support",
+        "transformation": [
+            {"width": 1200, "crop": "limit"},
+            {"quality": "auto", "fetch_format": "auto"},
+        ],
+    }
+    return await loop.run_in_executor(None, lambda: _upload_sync(content, **kwargs))
+
+
 async def upload_avatar(file: UploadFile, user_id: str) -> str:
     content = await _validate_file(file)
     loop = asyncio.get_event_loop()

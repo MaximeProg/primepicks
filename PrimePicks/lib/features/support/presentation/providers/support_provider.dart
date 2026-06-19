@@ -110,7 +110,10 @@ class TicketChatNotifier extends FamilyAsyncNotifier<TicketEntity, String> {
           .sendMessage(arg, content: content);
       final updated = state.valueOrNull;
       if (updated == null) return;
-      final msgs = updated.messages.where((m) => m.id != tmp.id).toList()..add(sent);
+      // WS may have already added the real message before this resolves
+      final alreadyAdded = updated.messages.any((m) => m.id == sent.id);
+      final msgs = updated.messages.where((m) => m.id != tmp.id).toList();
+      if (!alreadyAdded) msgs.add(sent);
       state = AsyncData(_withMsgs(updated, msgs));
     } catch (e) {
       final updated = state.valueOrNull;

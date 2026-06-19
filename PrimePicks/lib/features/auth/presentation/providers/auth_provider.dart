@@ -1,8 +1,10 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../data/repositories/auth_repository_impl.dart';
 import '../../domain/entities/user_entity.dart';
+import '../../../../services/fcm_service.dart';
 
 // Stream Firebase — sert de garde de navigation
 final authStateProvider = StreamProvider<User?>((ref) {
@@ -18,7 +20,25 @@ final authNotifierProvider =
 
 class AuthNotifier extends AsyncNotifier<void> {
   @override
-  Future<void> build() async {}
+  Future<void> build() async {
+    // Restore user profile and init FCM whenever Firebase auth state changes
+    // (covers app restart with an existing session)
+    ref.listen(authStateProvider, (_, next) async {
+      next.whenData((firebaseUser) async {
+        if (firebaseUser != null) {
+          if (ref.read(userProfileProvider) == null) {
+            try {
+              final user = await ref.read(authRepositoryProvider).getCurrentUser();
+              if (user != null) ref.read(userProfileProvider.notifier).state = user;
+            } catch (_) {}
+          }
+          if (!kIsWeb) await ref.read(fcmServiceProvider).init();
+        } else {
+          ref.read(userProfileProvider.notifier).state = null;
+        }
+      });
+    });
+  }
 
   Future<void> signInWithEmail(String email, String password) async {
     state = const AsyncLoading();
@@ -60,6 +80,7 @@ class AuthNotifier extends AsyncNotifier<void> {
   Future<void> signOut() async {
     state = const AsyncLoading();
     state = await AsyncValue.guard(() async {
+      if (!kIsWeb) await ref.read(fcmServiceProvider).deleteToken();
       final repo = ref.read(authRepositoryProvider);
       await repo.signOut();
       ref.read(userProfileProvider.notifier).state = null;

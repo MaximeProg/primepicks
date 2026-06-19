@@ -1,7 +1,9 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../../../../core/network/api_client.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/formatters.dart';
 import '../../../../shared/widgets/shimmer_box.dart';
@@ -71,16 +73,39 @@ class _TicketChatScreenState extends ConsumerState<TicketChatScreen> {
   }
 
   Future<void> _pickImage() async {
+    if (kIsWeb) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Upload disponible uniquement sur l\'app mobile')),
+        );
+      }
+      return;
+    }
+
     final picker = ImagePicker();
     final file = await picker.pickImage(source: ImageSource.gallery, imageQuality: 80);
-    if (file == null) return;
-    // Sur web, on ne peut pas uploader directement — on notifie l'utilisateur
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Upload d\'images disponible sur l\'app mobile'),
-        ),
+    if (file == null || !mounted) return;
+
+    setState(() => _sending = true);
+    try {
+      final bytes = await file.readAsBytes();
+      final filename = file.name.isNotEmpty ? file.name : 'image.jpg';
+      final result = await ref.read(apiClientProvider).uploadBytes<Map<String, dynamic>>(
+        '/support/upload',
+        bytes,
+        filename,
       );
+      final url = result['url'] as String;
+      await ref.read(ticketChatProvider(widget.ticketId).notifier).sendMedia(url, 'IMAGE');
+      _scrollToBottom();
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erreur upload: $e'), backgroundColor: AppColors.error),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _sending = false);
     }
   }
 

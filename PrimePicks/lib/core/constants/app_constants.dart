@@ -3,11 +3,11 @@ import 'package:flutter/foundation.dart';
 class AppConstants {
   // Sur web (dev) → localhost ; sur émulateur Android → 10.0.2.2 ; device réel → IP du serveur
   static String get baseUrl {
-    if (kIsWeb) return 'http://localhost:8000/api/v1';
+    if (kIsWeb) return 'https://primepicks-bqpo.onrender.com/api/v1';
     if (defaultTargetPlatform == TargetPlatform.android) {
-      return 'http://10.0.2.2:8000/api/v1';
+      return 'https://primepicks-bqpo.onrender.com/api/v1';
     }
-    return 'http://localhost:8000/api/v1';
+    return 'https://primepicks-bqpo.onrender.com/api/v1';
   }
 
   static const String appName = 'PrimePicks';

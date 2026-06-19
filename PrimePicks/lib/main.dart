@@ -9,6 +9,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'core/config/firebase_options.dart';
 import 'core/router/app_router.dart';
 import 'core/theme/app_theme.dart';
+import 'features/auth/presentation/providers/auth_provider.dart';
 import 'services/preferences_service.dart';
 
 void main() async {
@@ -40,6 +41,9 @@ class PrimePicksApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // Ensures the auth notifier is alive from the start so it can restore
+    // the user profile and register the FCM token when Firebase re-authenticates.
+    ref.watch(authNotifierProvider);
     final router    = ref.watch(appRouterProvider);
     final themeMode = ref.watch(themeModeProvider);
 

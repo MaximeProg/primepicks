@@ -2,7 +2,7 @@
 import uuid
 from datetime import datetime
 
-from fastapi import APIRouter, Depends, HTTPException, WebSocket, WebSocketDisconnect
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, WebSocket, WebSocketDisconnect
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, desc
@@ -13,6 +13,7 @@ from app.core.dependencies import get_current_user
 from app.models.support_ticket import SupportTicket, TicketStatus
 from app.models.ticket_message import TicketMessage
 from app.models.user import User
+from app.services.cloudinary_service import upload_support_media
 from app.services.notification_service import send_to_user, NotificationType
 from app.services.ws_manager import ticket_ws_manager
 
@@ -70,6 +71,15 @@ class TicketSummary(BaseModel):
 
 
 # ── REST endpoints ─────────────────────────────────────────────────────────────
+
+@router.post("/upload", summary="Upload d'image pour le chat support")
+async def upload_support_image(
+    file: UploadFile = File(...),
+    user: User = Depends(get_current_user),
+):
+    url = await upload_support_media(file)
+    return {"url": url}
+
 
 @router.get("/tickets", response_model=list[TicketSummary])
 async def list_my_tickets(

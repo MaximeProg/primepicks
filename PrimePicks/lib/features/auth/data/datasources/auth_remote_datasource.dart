@@ -15,11 +15,20 @@ class AuthRemoteDatasource {
   AuthRemoteDatasource(this._auth, this._dio);
 
   // Sync l'utilisateur Firebase vers notre DB et retourne le profil complet
-  Future<UserModel> _syncUser(User firebaseUser) async {
+  Future<UserModel> _syncUser(
+    User firebaseUser, {
+    String? fullName,
+    String? referralCode,
+  }) async {
     final token = await firebaseUser.getIdToken();
+    final body = <String, dynamic>{
+      if (fullName != null && fullName.isNotEmpty) 'full_name': fullName,
+      if (referralCode != null && referralCode.isNotEmpty) 'referral_code': referralCode,
+    };
     try {
       final res = await _dio.post(
         '/auth/sync',
+        data: body.isEmpty ? null : body,
         options: Options(headers: {'Authorization': 'Bearer $token'}),
       );
       return UserModel.fromJson(res.data as Map<String, dynamic>);
@@ -79,7 +88,7 @@ class AuthRemoteDatasource {
       if (fullName != null && fullName.isNotEmpty) {
         await cred.user!.updateDisplayName(fullName.trim());
       }
-      return _syncUser(cred.user!);
+      return _syncUser(cred.user!, fullName: fullName, referralCode: referralCode);
     } on FirebaseAuthException catch (e) {
       throw AppException.unknown(_firebaseMessage(e.code));
     }
