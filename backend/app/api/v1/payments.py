@@ -168,8 +168,8 @@ async def fedapay_webhook(request: Request, db: AsyncSession = Depends(get_db)):
     if event_name != "transaction.approved":
         return {"ok": True}
 
-    txn_data = event.get("data", {})
-    fedapay_txn = txn_data.get("v1/transaction", txn_data)
+    # FedaPay envoie la transaction dans "entity" (pas "data")
+    fedapay_txn = event.get("entity") or event.get("data", {})
     fedapay_id = str(fedapay_txn.get("id", ""))
 
     # Recherche par fedapay_id (le plus fiable — pas de dépendance aux métadonnées)
