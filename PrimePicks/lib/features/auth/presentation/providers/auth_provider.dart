@@ -5,6 +5,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../data/repositories/auth_repository_impl.dart';
 import '../../domain/entities/user_entity.dart';
 import '../../../../services/fcm_service.dart';
+import '../../../subscriptions/presentation/providers/subscription_provider.dart';
+import '../../../coupons/presentation/providers/coupon_provider.dart';
+import '../../../referral/presentation/providers/referral_provider.dart';
 
 // Stream Firebase — sert de garde de navigation
 final authStateProvider = StreamProvider<User?>((ref) {
@@ -19,16 +22,24 @@ final authNotifierProvider =
     AsyncNotifierProvider<AuthNotifier, void>(AuthNotifier.new);
 
 class AuthNotifier extends AsyncNotifier<void> {
+  /// Vide tout le cache utilisateur. À appeler avant chaque connexion/déconnexion
+  /// pour qu'aucune donnée d'un ancien compte ne reste visible.
+  void _clearUserData() {
+    ref.read(userProfileProvider.notifier).state = null;
+    ref.invalidate(mySubscriptionProvider);
+    ref.invalidate(premiumCouponsProvider);
+    ref.invalidate(referralInfoProvider);
+    ref.invalidate(referralStatsProvider);
+    ref.invalidate(plansProvider);
+  }
+
   @override
   Future<void> build() async {
-    // ref.listen ne déclenche pas de callback pour la valeur ACTUELLE —
-    // il faut donc vérifier immédiatement + écouter les changements futurs.
     Future<void> syncProfile(AsyncValue<User?> state) async {
       state.whenData((firebaseUser) async {
         if (firebaseUser == null) {
-          // Ne PAS effacer le profil ici : Firebase peut émettre null
-          // transitoirement (refresh token, reprise en premier plan).
-          // Seul signOut() doit effacer le profil explicitement.
+          // Ne PAS effacer ici : Firebase émet null transitoirement lors
+          // d'un refresh token. Seul signOut() vide les données.
           return;
         }
         if (ref.read(userProfileProvider) == null) {
@@ -43,27 +54,26 @@ class AuthNotifier extends AsyncNotifier<void> {
       });
     }
 
-    // 1. Vérifier l'état actuel immédiatement (couvre le redémarrage de l'app)
+    // Vérifier l'état actuel immédiatement (couvre le redémarrage de l'app)
     await syncProfile(ref.read(authStateProvider));
-
-    // 2. Écouter les changements futurs (connexion, déconnexion, refresh token)
+    // Écouter les changements futurs
     ref.listen(authStateProvider, (_, next) => syncProfile(next));
   }
 
   Future<void> signInWithEmail(String email, String password) async {
     state = const AsyncLoading();
+    _clearUserData(); // Vider l'ancien compte avant de charger le nouveau
     state = await AsyncValue.guard(() async {
-      final repo = ref.read(authRepositoryProvider);
-      final user = await repo.signInWithEmail(email, password);
+      final user = await ref.read(authRepositoryProvider).signInWithEmail(email, password);
       ref.read(userProfileProvider.notifier).state = user;
     });
   }
 
   Future<void> signInWithGoogle() async {
     state = const AsyncLoading();
+    _clearUserData();
     state = await AsyncValue.guard(() async {
-      final repo = ref.read(authRepositoryProvider);
-      final user = await repo.signInWithGoogle();
+      final user = await ref.read(authRepositoryProvider).signInWithGoogle();
       ref.read(userProfileProvider.notifier).state = user;
     });
   }
@@ -75,9 +85,9 @@ class AuthNotifier extends AsyncNotifier<void> {
     String? referralCode,
   }) async {
     state = const AsyncLoading();
+    _clearUserData();
     state = await AsyncValue.guard(() async {
-      final repo = ref.read(authRepositoryProvider);
-      final user = await repo.signUpWithEmail(
+      final user = await ref.read(authRepositoryProvider).signUpWithEmail(
         email: email,
         password: password,
         fullName: fullName,
@@ -91,9 +101,8 @@ class AuthNotifier extends AsyncNotifier<void> {
     state = const AsyncLoading();
     state = await AsyncValue.guard(() async {
       if (!kIsWeb) await ref.read(fcmServiceProvider).deleteToken();
-      final repo = ref.read(authRepositoryProvider);
-      await repo.signOut();
-      ref.read(userProfileProvider.notifier).state = null;
+      await ref.read(authRepositoryProvider).signOut();
+      _clearUserData(); // Vider toutes les données après déconnexion
     });
   }
 
@@ -101,8 +110,7 @@ class AuthNotifier extends AsyncNotifier<void> {
     state = const AsyncLoading();
     bool success = false;
     state = await AsyncValue.guard(() async {
-      final repo = ref.read(authRepositoryProvider);
-      await repo.sendPasswordReset(email);
+      await ref.read(authRepositoryProvider).sendPasswordReset(email);
       success = true;
     });
     return success;
