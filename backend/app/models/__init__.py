@@ -16,6 +16,7 @@ from app.models.banner import Banner
 from app.models.app_setting import AppSetting
 from app.models.support_ticket import SupportTicket, TicketStatus
 from app.models.admin_log import AdminLog
+from app.models.review import Review, ReviewStatus
 
 __all__ = [
     "Base",
@@ -36,4 +37,5 @@ __all__ = [
     "AppSetting",
     "SupportTicket", "TicketStatus",
     "AdminLog",
+    "Review", "ReviewStatus",
 ]

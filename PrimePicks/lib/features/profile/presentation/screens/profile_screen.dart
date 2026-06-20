@@ -169,6 +169,17 @@ class ProfileScreen extends ConsumerWidget {
           ),
 
           _MenuSection(
+            title: 'Communauté',
+            items: [
+              _MenuItem(
+                icon: Icons.rate_review_outlined,
+                label: 'Avis & Témoignages',
+                onTap: () => context.push(AppRoutes.reviews),
+              ),
+            ],
+          ),
+
+          _MenuSection(
             title: 'Support',
             items: [
               _MenuItem(

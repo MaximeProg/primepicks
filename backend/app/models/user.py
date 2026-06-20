@@ -36,3 +36,4 @@ class User(Base):
     transactions: Mapped[list["Transaction"]] = relationship("Transaction", back_populates="user", lazy="select", passive_deletes=True)
     fcm_tokens: Mapped[list["FcmToken"]] = relationship("FcmToken", back_populates="user", lazy="select", passive_deletes=True)
     loyalty_transactions: Mapped[list["LoyaltyTransaction"]] = relationship("LoyaltyTransaction", back_populates="user", lazy="select", passive_deletes=True)
+    reviews: Mapped[list["Review"]] = relationship("Review", back_populates="user", lazy="select", passive_deletes=True)

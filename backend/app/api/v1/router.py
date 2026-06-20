@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from app.api.v1 import auth, users, plans, subscriptions, coupons, payments, notifications, stats, referrals, affiliates, loyalty, support
+from app.api.v1 import auth, users, plans, subscriptions, coupons, payments, notifications, stats, referrals, affiliates, loyalty, support, reviews
 from app.api.v1.admin import coupons as admin_coupons
 from app.api.v1.admin import users as admin_users
 from app.api.v1.admin import stats as admin_stats
@@ -14,6 +14,7 @@ from app.api.v1.admin import support_tickets as admin_support
 from app.api.v1.admin import admin_logs
 from app.api.v1.admin import affiliate_payouts as admin_affiliate_payouts
 from app.api.v1.admin import referrals as admin_referrals
+from app.api.v1.admin import reviews as admin_reviews
 
 api_router = APIRouter(prefix="/api/v1")
 
@@ -30,6 +31,7 @@ api_router.include_router(referrals.router)
 api_router.include_router(affiliates.router)
 api_router.include_router(loyalty.router)
 api_router.include_router(support.router)
+api_router.include_router(reviews.router)
 
 # Routes admin
 api_router.include_router(admin_plans.router)
@@ -46,3 +48,4 @@ api_router.include_router(admin_support.router)
 api_router.include_router(admin_logs.router)
 api_router.include_router(admin_affiliate_payouts.router)
 api_router.include_router(admin_referrals.router)
+api_router.include_router(admin_reviews.router)

@@ -20,6 +20,7 @@ import '../../features/payments/presentation/screens/payment_pending_screen.dart
 import '../../features/referral/presentation/screens/referral_screen.dart';
 import '../../features/support/presentation/screens/support_screen.dart';
 import '../../features/support/presentation/screens/ticket_chat_screen.dart';
+import '../../features/reviews/presentation/screens/reviews_screen.dart';
 import '../../shared/widgets/main_shell.dart';
 
 final appRouterProvider = Provider<GoRouter>((ref) {
@@ -75,6 +76,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           );
         },
       ),
+      GoRoute(path: AppRoutes.reviews,    builder: (_, __) => const ReviewsScreen()),
       GoRoute(path: AppRoutes.privacy,    builder: (_, __) => const _SimpleScreen('Confidentialité')),
       GoRoute(path: AppRoutes.terms,      builder: (_, __) => const _SimpleScreen('Conditions')),
 
@@ -112,6 +114,7 @@ class AppRoutes {
   static const affiliate      = '/affiliate';
   static const payments       = '/payments';
   static const paymentPending = '/payment-pending';
+  static const reviews        = '/reviews';
   static const privacy        = '/privacy';
   static const terms          = '/terms';
 }
