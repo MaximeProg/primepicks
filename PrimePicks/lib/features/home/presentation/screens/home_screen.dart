@@ -129,29 +129,69 @@ class HomeScreen extends ConsumerWidget {
                   ),
                 ),
               ),
-              data: (list) => list.isEmpty
-                  ? SliverToBoxAdapter(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 20),
-                        child: EmptyState(
-                          icon: Icons.confirmation_number_outlined,
-                          title: 'Aucun coupon disponible',
-                          subtitle: 'Revenez bientôt pour les nouvelles sélections.',
-                        ),
-                      ),
-                    )
-                  : SliverPadding(
+              data: (list) {
+                if (list.isEmpty) {
+                  return SliverToBoxAdapter(
+                    child: Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 20),
-                      sliver: SliverList(
-                        delegate: SliverChildBuilderDelegate(
-                          (_, i) => CouponCard(
-                            coupon: list[i],
-                            locked: !hasActiveSub && !list[i].isFree,
-                          ),
-                          childCount: list.length,
-                        ),
+                      child: EmptyState(
+                        icon: Icons.confirmation_number_outlined,
+                        title: 'Aucun coupon disponible',
+                        subtitle: 'Revenez bientôt pour les nouvelles sélections.',
                       ),
                     ),
+                  );
+                }
+
+                final todayStart = DateTime.now();
+                final dayStart = DateTime(todayStart.year, todayStart.month, todayStart.day);
+
+                final today = list.where((c) {
+                  final pub = c.publishedAt;
+                  return pub != null && !pub.isBefore(dayStart);
+                }).toList();
+
+                final past = list.where((c) {
+                  final pub = c.publishedAt;
+                  return pub == null || pub.isBefore(dayStart);
+                }).toList();
+
+                return SliverPadding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  sliver: SliverList(
+                    delegate: SliverChildBuilderDelegate(
+                      (_, i) {
+                        // Coupons du jour
+                        if (i < today.length) {
+                          return CouponCard(
+                            coupon: today[i],
+                            locked: !hasActiveSub && !today[i].isFree,
+                          );
+                        }
+
+                        // En-tête "Coupons passés"
+                        if (i == today.length && past.isNotEmpty) {
+                          return Padding(
+                            padding: const EdgeInsets.only(top: 8, bottom: 12),
+                            child: _SectionHeader(
+                              title: 'Coupons passés',
+                              onMore: () => context.push(AppRoutes.coupons),
+                            ),
+                          );
+                        }
+
+                        // Coupons passés
+                        final pastIdx = past.isNotEmpty ? i - today.length - 1 : i - today.length;
+                        return CouponCard(
+                          coupon: past[pastIdx],
+                          locked: !hasActiveSub && !past[pastIdx].isFree,
+                        );
+                      },
+                      childCount: today.length + (past.isNotEmpty ? 1 + past.length : 0),
+                    ),
+                  ),
+                );
+              },
             ),
 
             const SliverToBoxAdapter(child: SizedBox(height: 24)),
