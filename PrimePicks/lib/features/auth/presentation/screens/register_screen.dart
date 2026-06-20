@@ -86,6 +86,10 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
               children: [
                 const SizedBox(height: 8),
 
+                // ── Logo ─────────────────────────────────────────────────
+                Image.asset('assets/logos/logo.png', height: 52),
+                const SizedBox(height: 20),
+
                 // ── Intro ────────────────────────────────────────────────
                 const Text(
                   'Inscription',

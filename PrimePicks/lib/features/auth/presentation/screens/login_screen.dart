@@ -81,32 +81,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 const SizedBox(height: 40),
 
                 // ── En-tête ──────────────────────────────────────────────
-                Row(
-                  children: [
-                    Container(
-                      width: 44,
-                      height: 44,
-                      decoration: BoxDecoration(
-                        color: AppColors.primary,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: const Icon(
-                        Icons.workspace_premium_rounded,
-                        color: Colors.white,
-                        size: 24,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    const Text(
-                      'PrimePicks',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.primary,
-                        letterSpacing: -0.3,
-                      ),
-                    ),
-                  ],
+                Image.asset(
+                  'assets/logos/logo.png',
+                  height: 56,
                 ),
 
                 const SizedBox(height: 40),
