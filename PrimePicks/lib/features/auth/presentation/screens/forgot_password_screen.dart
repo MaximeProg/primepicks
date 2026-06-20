@@ -100,7 +100,7 @@ class _FormView extends StatelessWidget {
         children: [
           const SizedBox(height: 16),
 
-          Image.asset('assets/logos/logo.png', height: 56),
+          Image.asset('assets/logos/logo.png', height: 110),
 
           const SizedBox(height: 24),
 

@@ -83,7 +83,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 // ── En-tête ──────────────────────────────────────────────
                 Image.asset(
                   'assets/logos/logo.png',
-                  height: 56,
+                  height: 110,
                 ),
 
                 const SizedBox(height: 40),

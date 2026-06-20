@@ -87,7 +87,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 const SizedBox(height: 8),
 
                 // ── Logo ─────────────────────────────────────────────────
-                Image.asset('assets/logos/logo.png', height: 52),
+                Image.asset('assets/logos/logo.png', height: 110),
                 const SizedBox(height: 20),
 
                 // ── Intro ────────────────────────────────────────────────
