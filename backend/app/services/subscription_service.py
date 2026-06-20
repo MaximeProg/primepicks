@@ -2,6 +2,7 @@ from uuid import UUID
 from datetime import datetime, timedelta, timezone
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, and_, update
+from sqlalchemy.orm import selectinload
 
 from app.models.subscription import Subscription, SubscriptionStatus
 from app.models.plan import Plan
@@ -12,13 +13,15 @@ from app.models.user import User
 async def get_active_subscription(db: AsyncSession, user_id: UUID) -> Subscription | None:
     now = datetime.utcnow()
     result = await db.execute(
-        select(Subscription).where(
+        select(Subscription)
+        .where(
             and_(
                 Subscription.user_id == user_id,
                 Subscription.status == SubscriptionStatus.ACTIVE,
                 Subscription.end_date > now,
             )
         )
+        .options(selectinload(Subscription.plan))
     )
     return result.scalar_one_or_none()
 
