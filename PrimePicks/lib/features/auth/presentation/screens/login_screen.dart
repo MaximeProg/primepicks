@@ -78,15 +78,15 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const SizedBox(height: 40),
+                const SizedBox(height: 20),
 
                 // ── En-tête ──────────────────────────────────────────────
                 Image.asset(
                   'assets/logos/logo.png',
-                  height: 110,
+                  height: 80,
                 ),
 
-                const SizedBox(height: 40),
+                const SizedBox(height: 20),
 
                 const Text(
                   'Connexion',
