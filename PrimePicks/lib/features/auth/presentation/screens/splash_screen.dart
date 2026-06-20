@@ -43,8 +43,8 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
         fit: StackFit.expand,
         children: [
           // Image de fond football
-          Image.network(
-            'https://plus.unsplash.com/premium_photo-1661881970542-8447015772e8?q=80&w=687&auto=format&fit=crop',
+          Image.asset(
+            'assets/images/splash_bg.jpg',
             fit: BoxFit.cover,
             errorBuilder: (_, __, ___) => Container(color: const Color(0xFF0D2137)),
           ),

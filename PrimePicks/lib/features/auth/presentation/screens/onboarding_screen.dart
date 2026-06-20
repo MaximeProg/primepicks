@@ -19,7 +19,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
 
   static const _pages = [
     _OnboardingPage(
-      imageUrl: 'https://storage.letudiant.fr/mediatheque/letudiant/7/9/2774679-travailler-dans-le-football-632x421.jpg',
+      imageUrl: 'assets/images/onboarding_1.jpg',
       accentColor: Color(0xFF1A56DB),
       icon: Icons.workspace_premium_rounded,
       title: 'Coupons Premium',
@@ -27,7 +27,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           'Accédez aux meilleures sélections de coupons analysés par nos experts sportifs chaque jour.',
     ),
     _OnboardingPage(
-      imageUrl: 'https://us.123rf.com/450wm/bigmouse/bigmouse2201/bigmouse220100015/180208753-un-ballon-de-football-3d-d%C3%A9taill%C3%A9-et-r%C3%A9aliste-marque-un-filet-de-but-sur-fond-de-terrain-de-football.jpg?ver=6',
+      imageUrl: 'assets/images/onboarding_2.jpg',
       accentColor: Color(0xFF1E3A8A),
       icon: Icons.trending_up_rounded,
       title: 'Taux de réussite élevé',
@@ -35,7 +35,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           'Nos coupons sont sélectionnés avec rigueur pour maximiser vos chances de gain.',
     ),
     _OnboardingPage(
-      imageUrl: 'https://static.lejdd.fr/lmnr/var/jdd/public/media/image/2022/12/04/18/au-fait-quelle-est-la-taille-d-un-terrain-de-football.jpg?VersionId=dlQNA97JmKOI20c1njWXbK9RznUSl4kU',
+      imageUrl: 'assets/images/onboarding_3.jpg',
       accentColor: Color(0xFF1A56DB),
       icon: Icons.notifications_active_rounded,
       title: 'Alertes instantanées',
@@ -231,8 +231,8 @@ class _BackgroundVisual extends StatelessWidget {
           ),
         ),
 
-        // Image réseau plein écran
-        Image.network(
+        // Image locale plein écran
+        Image.asset(
           page.imageUrl,
           fit: BoxFit.cover,
           errorBuilder: (_, __, ___) => const SizedBox.shrink(),
