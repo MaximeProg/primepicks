@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../data/datasources/coupon_datasource.dart';
 import '../../domain/entities/coupon_entity.dart';
+import '../../../subscriptions/presentation/providers/subscription_provider.dart';
 
 // Stats publiques
 final publicStatsProvider = FutureProvider<PublicStatsEntity>((ref) async {
@@ -25,6 +26,10 @@ class PremiumCouponsNotifier extends AsyncNotifier<List<CouponEntity>> {
 
   @override
   Future<List<CouponEntity>> build() async {
+    // Dépendance réactive : se recharge quand mySubscriptionProvider change
+    // (abonnement activé, expiré, ou invalidé manuellement)
+    final sub = ref.watch(mySubscriptionProvider);
+    if (sub.valueOrNull?.isActive != true) return [];
     _offset = 0;
     _hasMore = true;
     return _fetch();

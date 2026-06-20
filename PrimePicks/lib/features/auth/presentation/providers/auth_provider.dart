@@ -25,20 +25,21 @@ class AuthNotifier extends AsyncNotifier<void> {
     // il faut donc vérifier immédiatement + écouter les changements futurs.
     Future<void> syncProfile(AsyncValue<User?> state) async {
       state.whenData((firebaseUser) async {
-        if (firebaseUser != null) {
-          // Toujours re-fetch si le profil est absent
-          if (ref.read(userProfileProvider) == null) {
-            try {
-              final user = await ref.read(authRepositoryProvider).getCurrentUser();
-              if (user != null) {
-                ref.read(userProfileProvider.notifier).state = user;
-              }
-            } catch (_) {}
-          }
-          if (!kIsWeb) await ref.read(fcmServiceProvider).init();
-        } else {
-          ref.read(userProfileProvider.notifier).state = null;
+        if (firebaseUser == null) {
+          // Ne PAS effacer le profil ici : Firebase peut émettre null
+          // transitoirement (refresh token, reprise en premier plan).
+          // Seul signOut() doit effacer le profil explicitement.
+          return;
         }
+        if (ref.read(userProfileProvider) == null) {
+          try {
+            final user = await ref.read(authRepositoryProvider).getCurrentUser();
+            if (user != null) {
+              ref.read(userProfileProvider.notifier).state = user;
+            }
+          } catch (_) {}
+        }
+        if (!kIsWeb) await ref.read(fcmServiceProvider).init();
       });
     }
 
